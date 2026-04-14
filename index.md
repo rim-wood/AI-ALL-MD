@@ -14,7 +14,7 @@ hero:
 features:
   - title: 🧱 基础知识
     details: Python/TS 编程、AI/ML 原理、Prompt Engineering
-    link: /01-fundamentals/01-programming-basics
+    link: /01-fundamentals/01-python-basics
   - title: 🔧 核心技术
     details: LLM API、Function Calling、RAG、Embedding
     link: /02-core-tech/01-llm-api-and-models
