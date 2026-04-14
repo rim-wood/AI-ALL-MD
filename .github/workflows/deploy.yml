@@ -16,6 +16,7 @@ jobs:
           node-version: 20
       - run: npm ci
       - run: npm run docs:build
+      - run: touch .vitepress/dist/.nojekyll
       - uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
