@@ -1,0 +1,18 @@
+{
+  "name": "ai-all-md",
+  "version": "1.0.0",
+  "description": "> 从基础知识到生产落地，系统掌握 AI 应用开发全栈技能",
+  "main": "index.js",
+  "scripts": {
+    "docs:dev": "vitepress dev",
+    "docs:build": "vitepress build",
+    "docs:preview": "vitepress preview"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "vitepress": "^1.6.4"
+  }
+}
