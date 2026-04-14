@@ -1,6 +1,7 @@
 import { defineConfig } from 'vitepress'
 
 export default defineConfig({
+  base: '/AI-ALL-MD/',
   title: 'AI 应用开发指南',
   description: '从基础知识到生产落地，系统掌握 AI 应用开发全栈技能',
   lang: 'zh-CN',
