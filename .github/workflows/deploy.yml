@@ -16,7 +16,9 @@ jobs:
           node-version: 20
       - run: npm ci
       - run: npm run docs:build
-      - run: touch .vitepress/dist/.nojekyll
+      - run: |
+          touch .vitepress/dist/.nojekyll
+          echo 'ai.orangeaipro.com' > .vitepress/dist/CNAME
       - uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
