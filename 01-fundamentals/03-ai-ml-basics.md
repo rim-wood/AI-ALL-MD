@@ -186,73 +186,151 @@ graph LR
 
 ## 3. Transformer 架构
 
-2017 年 Google 发表的 "Attention Is All You Need" 提出了 Transformer，奠定了现代 LLM 的基础。
+2017 年，Google 团队发表了划时代的论文 [*"Attention Is All You Need"*](https://arxiv.org/abs/1706.03762)，提出了 **Transformer** 架构。它完全抛弃了 RNN 的循环结构和 CNN 的卷积操作，仅依靠注意力机制（Attention）来建模序列中的全局依赖关系，实现了高度并行化的训练，奠定了现代 LLM 的基础。
 
-```mermaid
-graph TB
-    Input[输入 Embedding + 位置编码] --> MA[Multi-Head Attention]
-    MA --> AN1[Add & LayerNorm]
-    Input -.->|残差连接| AN1
-    AN1 --> FFN[Feed Forward Network]
-    FFN --> AN2[Add & LayerNorm]
-    AN1 -.->|残差连接| AN2
-    AN2 --> Output[输出]
+### 3.1 整体架构
 
-    style Input fill:#4A90D9,stroke:#333,color:#fff
-    style MA fill:#F5A623,stroke:#333,color:#fff
-    style FFN fill:#7BC67E,stroke:#333,color:#fff
-    style Output fill:#4A90D9,stroke:#333,color:#fff
-    style AN1 fill:#9B59B6,stroke:#333,color:#fff
-    style AN2 fill:#9B59B6,stroke:#333,color:#fff
-```
+Transformer 采用经典的 **编码器-解码器（Encoder-Decoder）** 结构。编码器将输入符号序列 (x₁, ..., xₙ) 映射为连续表示 z = (z₁, ..., zₙ)；解码器根据 z 逐个生成输出序列 (y₁, ..., yₘ)，每一步都是自回归的——将之前已生成的符号作为额外输入。
 
-> 上图为单个 Transformer Block 的结构，实际模型由多个 Block 堆叠而成（如 GPT-4 约 120 层）。
+![Transformer 模型架构（论文 Figure 1）](../assets/03-ai-ml-basics/transformer-architecture.png)
 
-### 3.1 Self-Attention 机制
+上图左半部分为编码器，右半部分为解码器。核心组件包括：
 
-Self-Attention 让模型在处理每个 Token 时能"关注"序列中的所有其他 Token，捕获长距离依赖。
+| 组件 | 作用 |
+|------|------|
+| Input/Output Embedding | 将 Token 转换为 d_model 维向量 |
+| Positional Encoding | 注入位置信息（Transformer 无循环结构） |
+| Multi-Head Attention | 多头注意力，捕获不同子空间的依赖关系 |
+| Masked Multi-Head Attention | 带掩码的注意力，防止解码器"偷看"未来位置 |
+| Feed Forward | 逐位置的前馈网络，提供非线性变换 |
+| Add & Norm | 残差连接 + Layer Normalization，稳定训练 |
 
-**Q/K/V（查询/键/值）**：
+**编码器**由 N=6 个相同的层堆叠而成，每层包含两个子层：多头自注意力 + 前馈网络，每个子层都有残差连接和 Layer Normalization。
 
-```
-输入序列 X
-  → Q = X · W_Q  （查询：我在找什么？）
-  → K = X · W_K  （键：我有什么信息？）
-  → V = X · W_V  （值：我的实际内容）
+**解码器**同样由 N=6 个相同的层堆叠，但每层多了一个子层：对编码器输出做交叉注意力（Cross-Attention），使解码器能关注输入序列的所有位置。解码器的自注意力层使用掩码（Mask），确保位置 i 的预测只能依赖位置 i 之前的已知输出。
 
-Attention(Q, K, V) = Softmax(Q · K^T / √d_k) · V
-```
+### 3.2 Scaled Dot-Product Attention
 
-- `Q · K^T`：计算每对 Token 之间的相关性分数
-- `√d_k`：缩放因子，防止点积过大导致梯度消失
-- `Softmax`：将分数归一化为注意力权重
-- 乘以 `V`：按权重聚合信息
+注意力机制的本质是：给定一个查询（Query），从一组键值对（Key-Value）中检索相关信息。
 
-**多头注意力（Multi-Head Attention）**：
+![Scaled Dot-Product Attention（论文 Figure 2 左）](../assets/03-ai-ml-basics/scaled-dot-product-attention.png)
+
+**计算公式**：
 
 ```
-MultiHead(Q, K, V) = Concat(head_1, ..., head_h) · W_O
-
-每个 head_i = Attention(Q·W_Qi, K·W_Ki, V·W_Vi)
+Attention(Q, K, V) = Softmax(Q · Kᵀ / √d_k) · V
 ```
 
-多个注意力头让模型从不同子空间捕获不同类型的关系（如语法关系、语义关系等）。
+逐步拆解：
 
-### 3.2 位置编码
+1. **Q · Kᵀ**：计算查询与每个键的点积，得到相关性分数
+2. **/ √d_k**：缩放因子。当 d_k 较大时，点积值会很大，导致 Softmax 梯度极小，除以 √d_k 可以缓解这个问题
+3. **Softmax**：将分数归一化为注意力权重（概率分布）
+4. **· V**：按权重对值进行加权求和，得到输出
 
-Transformer 没有循环结构，需要额外注入位置信息。
+> 论文解释了为什么需要缩放：假设 Q 和 K 的分量是均值为 0、方差为 1 的独立随机变量，则它们的点积均值为 0，方差为 d_k。d_k 越大，点积值越大，Softmax 会被推入梯度极小的区域。
+
+### 3.3 Multi-Head Attention
+
+与其用单个注意力函数处理 d_model 维的 Q/K/V，不如将它们线性投影到多个低维子空间，分别做注意力计算，再拼接结果：
+
+![Multi-Head Attention（论文 Figure 2 右）](../assets/03-ai-ml-basics/multi-head-attention.png)
+
+**计算公式**：
+
+```
+MultiHead(Q, K, V) = Concat(head₁, ..., headₕ) · Wᴼ
+
+其中 headᵢ = Attention(Q·WᵢQ, K·WᵢK, V·WᵢV)
+```
+
+论文中使用 h=8 个注意力头，每个头的维度 d_k = d_v = d_model / h = 64。由于每个头的维度降低了，总计算量与单头全维度注意力相当。
+
+**多头的意义**：不同的注意力头可以从不同的表示子空间捕获不同类型的关系——有的头关注语法结构，有的头关注语义关联，有的头捕获长距离依赖。
+
+**注意力在模型中的三种应用**：
+
+| 应用场景 | Q 来源 | K/V 来源 | 说明 |
+|----------|--------|----------|------|
+| 编码器自注意力 | 编码器上一层 | 编码器上一层 | 每个位置关注输入序列的所有位置 |
+| 解码器自注意力（带掩码） | 解码器上一层 | 解码器上一层 | 每个位置只能关注当前及之前的位置 |
+| 编码器-解码器交叉注意力 | 解码器上一层 | 编码器输出 | 解码器关注输入序列的所有位置 |
+
+### 3.4 Position-wise Feed-Forward Network
+
+每层中除了注意力子层，还有一个逐位置的前馈网络，对每个位置独立且相同地应用：
+
+```
+FFN(x) = max(0, x·W₁ + b₁)·W₂ + b₂
+```
+
+这是两个线性变换中间夹一个 ReLU 激活。论文中输入输出维度 d_model = 512，内层维度 d_ff = 2048（4 倍扩展）。
+
+> 可以将 FFN 理解为"知识存储层"——注意力层负责信息路由（哪些 Token 相关），FFN 负责信息处理（对内容做非线性变换）。
+
+### 3.5 位置编码（Positional Encoding）
+
+Transformer 没有循环和卷积结构，无法感知 Token 的顺序。为此，论文在输入 Embedding 上叠加了位置编码：
+
+```
+PE(pos, 2i)   = sin(pos / 10000^(2i/d_model))
+PE(pos, 2i+1) = cos(pos / 10000^(2i/d_model))
+```
+
+其中 pos 是位置，i 是维度索引。每个维度对应一个不同频率的正弦波，波长从 2π 到 10000·2π 呈几何级数递增。
+
+**为什么选择正弦编码**：对于任意固定偏移 k，PE(pos+k) 可以表示为 PE(pos) 的线性函数，这使模型能够轻松学习相对位置关系。论文也实验了可学习的位置编码，效果几乎相同，但正弦编码可能更容易泛化到训练时未见过的序列长度。
+
+**现代位置编码的演进**：
 
 | 编码方式 | 原理 | 使用模型 |
 |----------|------|----------|
-| 正弦编码 | 用不同频率的正弦/余弦函数 | 原始 Transformer |
-| RoPE | 旋转位置编码，将位置信息融入 Q/K | LLaMA, Qwen, DeepSeek |
+| 正弦编码 | 不同频率的正弦/余弦函数 | 原始 Transformer |
+| RoPE | 旋转位置编码，将位置信息融入 Q/K 的旋转矩阵 | LLaMA, Qwen, DeepSeek |
 | ALiBi | 在注意力分数上加线性偏置 | BLOOM, MPT |
 
 > 💡 RoPE 是目前最主流的位置编码方案，支持通过 NTK-aware 插值等技术扩展上下文长度。
 
-### 3.3 编码器-解码器结构
+### 3.6 为什么 Self-Attention 优于 RNN 和 CNN
 
-Transformer 衍生出三种主要架构：
+论文从三个维度对比了 Self-Attention、RNN 和 CNN：
+
+| 指标 | Self-Attention | RNN | CNN |
+|------|---------------|-----|-----|
+| 每层计算复杂度 | O(n²·d) | O(n·d²) | O(k·n·d²) |
+| 最少顺序操作数 | O(1) | O(n) | O(1) |
+| 最大路径长度 | **O(1)** | O(n) | O(log_k(n)) |
+
+关键优势：
+
+- **并行性**：Self-Attention 所有位置可以同时计算，而 RNN 必须逐步顺序处理（O(n) 顺序操作）
+- **长距离依赖**：任意两个位置之间的路径长度为 O(1)，RNN 需要 O(n) 步才能传递信息，CNN 需要 O(log_k(n)) 层
+- **可解释性**：注意力权重可以直观展示模型在关注什么，不同的注意力头会学到不同的语言结构
+
+> 当序列长度 n 小于表示维度 d 时（这在实际 NLP 任务中很常见），Self-Attention 的计算量也优于 RNN。
+
+### 3.7 训练细节
+
+论文中的关键训练配置：
+
+| 配置项 | Base 模型 | Big 模型 |
+|--------|----------|----------|
+| 层数 N | 6 | 6 |
+| d_model | 512 | 1024 |
+| d_ff | 2048 | 4096 |
+| 注意力头数 h | 8 | 16 |
+| 参数量 | 65M | 213M |
+| 训练时间 | 12 小时 (8×P100) | 3.5 天 (8×P100) |
+
+**优化器**：Adam（β₁=0.9, β₂=0.98），配合 Warmup 学习率调度——前 4000 步线性增长，之后按步数的平方根倒数衰减。
+
+**正则化**：
+- **Residual Dropout**（P_drop=0.1）：在每个子层输出上应用 Dropout，然后再做残差连接和归一化
+- **Label Smoothing**（ε_ls=0.1）：牺牲一点困惑度，但提升准确率和 BLEU 分数
+
+### 3.8 Transformer 的三种衍生架构
+
+原始 Transformer 是 Encoder-Decoder 结构，后续衍生出三种主要架构：
 
 ```mermaid
 graph TB
@@ -283,23 +361,18 @@ graph TB
 
 > 💡 当前主流 LLM 几乎都采用 Decoder-only 架构，因为它在自回归生成任务上表现最好，且更容易通过 Scaling 提升性能。
 
-### 3.4 关键改进
+### 3.9 现代 Transformer 的关键改进
 
-**Layer Normalization**：
+相比原始论文，现代 LLM 在 Transformer 基础上做了诸多改进：
 
-```
-LayerNorm(x) = γ · (x - μ) / √(σ² + ε) + β
-```
-
-稳定训练过程，现代模型多用 Pre-Norm（先归一化再计算）而非原始的 Post-Norm。RMSNorm 是更高效的变体，被 LLaMA 等模型采用。
-
-**残差连接**：
+**Pre-Norm vs Post-Norm**：
 
 ```
-output = LayerNorm(x + SubLayer(x))
+原始论文 (Post-Norm): LayerNorm(x + SubLayer(x))
+现代模型 (Pre-Norm):  x + SubLayer(LayerNorm(x))
 ```
 
-让梯度直接流过跳跃连接，解决深层网络的梯度消失问题。
+Pre-Norm 将归一化放在子层之前，训练更稳定。RMSNorm 是更高效的变体，被 LLaMA、DeepSeek 等模型采用。
 
 **KV Cache**：
 
@@ -311,6 +384,15 @@ output = LayerNorm(x + SubLayer(x))
 
 效果：推理速度大幅提升，但显存占用增加
 ```
+
+**其他改进**：
+
+| 改进 | 说明 | 采用模型 |
+|------|------|----------|
+| GQA（分组查询注意力） | 多个 Q 头共享一组 K/V，减少 KV Cache 显存 | LLaMA 2/3, Qwen2 |
+| SwiGLU 激活 | 替代 ReLU，效果更好 | LLaMA, PaLM, DeepSeek |
+| Flash Attention | IO 感知的精确注意力算法，大幅加速训练和推理 | 几乎所有现代模型 |
+| MoE（混合专家） | 稀疏激活，用更少计算量达到更大模型容量 | Mixtral, DeepSeek-V3 |
 
 ---
 
