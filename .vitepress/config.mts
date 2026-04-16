@@ -26,9 +26,10 @@ export default withMermaid(
           text: '第二部分：核心技术栈',
           items: [
             { text: 'LLM API 与模型选型', link: '/02-core-tech/01-llm-api-and-models' },
-            { text: 'Function Calling', link: '/02-core-tech/02-function-calling' },
-            { text: 'RAG', link: '/02-core-tech/03-rag' },
-            { text: 'Embedding 与向量搜索', link: '/02-core-tech/04-embeddings-and-vector-search' }
+            { text: 'Context Engineering', link: '/02-core-tech/02-context-engineering' },
+            { text: 'Function Calling', link: '/02-core-tech/03-function-calling' },
+            { text: 'RAG', link: '/02-core-tech/04-rag' },
+            { text: 'Embedding 与向量搜索', link: '/02-core-tech/05-embeddings-and-vector-search' }
           ]
         },
         {
@@ -45,10 +46,10 @@ export default withMermaid(
           text: '第四部分：应用实践',
           items: [
             { text: '智能客服与问答', link: '/04-practice/01-chatbot-and-qa' },
-            { text: '代码助手', link: '/04-practice/02-code-assistant' },
-            { text: '数据分析 Agent', link: '/04-practice/03-data-analysis-agent' },
-            { text: '多模态应用', link: '/04-practice/04-multimodal-apps' },
-            { text: '前端与用户体验', link: '/04-practice/05-frontend-and-ux' }
+            { text: '前端与用户体验', link: '/04-practice/02-frontend-and-ux' },
+            { text: 'HR 智能助手', link: '/04-practice/03-hr-assistant' },
+            { text: '数据分析 Agent', link: '/04-practice/04-data-analysis-agent' },
+            { text: '多模态应用', link: '/04-practice/05-multimodal-apps' }
           ]
         },
         {
@@ -66,6 +67,12 @@ export default withMermaid(
             { text: 'Agentic 系统设计', link: '/06-advanced/01-agentic-system-design' },
             { text: '微调与模型定制', link: '/06-advanced/02-fine-tuning' },
             { text: '前沿方向', link: '/06-advanced/03-frontier-topics' }
+          ]
+        },
+        {
+          text: '第七部分：面试题',
+          items: [
+            { text: 'AI 应用开发面试题', link: '/07-interview/01-interview-questions' }
           ]
         }
       ],

@@ -379,7 +379,7 @@ The question is...
 
 ![RAG 流程](../assets/04-prompt-engineering/rag.png)
 
-> RAG 是一个庞大的主题，本书在 [RAG 章节](../02-core-tech/03-rag.md) 中有更详细的介绍。
+> RAG 是一个庞大的主题，本书在 [RAG 章节](../02-core-tech/04-rag.md) 中有更详细的介绍。
 
 ### 5.2 生成知识提示（Generated Knowledge Prompting）
 

@@ -39,10 +39,11 @@
 
 | 章节 | 内容 | 难度 |
 |------|------|------|
-| [LLM API 与模型选型](02-core-tech/01-llm-api-and-models.md) | 主流模型对比、API 调用、成本分析 | ⭐⭐ |
-| [Function Calling](02-core-tech/02-function-calling.md) | 工具调用、结构化输出、错误处理 | ⭐⭐ |
-| [RAG](02-core-tech/03-rag.md) | 检索增强生成、分块、混合检索、评估 | ⭐⭐⭐ |
-| [Embedding 与向量搜索](02-core-tech/04-embeddings-and-vector-search.md) | 嵌入模型、向量数据库、ANN 算法 | ⭐⭐ |
+| [LLM API 与模型选型](02-core-tech/01-llm-api-and-models.md) | API 调用模式、选型决策框架、成本控制、企业最佳实践 | ⭐⭐ |
+| [Context Engineering](02-core-tech/02-context-engineering.md) | 上下文工程、四大策略（Write/Select/Compress/Isolate）、长任务管理 | ⭐⭐ |
+| [Function Calling](02-core-tech/03-function-calling.md) | 工具调用、结构化输出、错误处理 | ⭐⭐ |
+| [RAG](02-core-tech/04-rag.md) | 检索增强生成、分块、混合检索、评估 | ⭐⭐⭐ |
+| [Embedding 与向量搜索](02-core-tech/05-embeddings-and-vector-search.md) | 嵌入模型、向量数据库、ANN 算法 | ⭐⭐ |
 
 ### 第三部分：框架与工具
 
@@ -59,10 +60,10 @@
 | 章节 | 内容 | 难度 |
 |------|------|------|
 | [智能客服与问答](04-practice/01-chatbot-and-qa.md) | 对话机器人、知识库问答、多轮对话 | ⭐⭐ |
-| [代码助手](04-practice/02-code-assistant.md) | 代码生成、审查、测试、IDE 集成 | ⭐⭐⭐ |
-| [数据分析 Agent](04-practice/03-data-analysis-agent.md) | Text-to-SQL、可视化、BI 集成 | ⭐⭐ |
-| [多模态应用](04-practice/04-multimodal-apps.md) | 视觉、语音、图像生成、视频分析 | ⭐⭐⭐ |
-| [前端与用户体验](04-practice/05-frontend-and-ux.md) | 流式输出、对话 UI、反馈机制 | ⭐⭐ |
+| [前端与用户体验](04-practice/02-frontend-and-ux.md) | 流式输出、对话 UI、反馈机制 | ⭐⭐ |
+| [HR 智能助手](04-practice/03-hr-assistant.md) | 简历筛选、政策问答、入职自动化 | ⭐⭐ |
+| [数据分析 Agent](04-practice/04-data-analysis-agent.md) | Text-to-SQL、可视化、BI 集成 | ⭐⭐ |
+| [多模态应用](04-practice/05-multimodal-apps.md) | 视觉、语音、图像生成、视频分析 | ⭐⭐⭐ |
 
 ### 第五部分：生产部署与运维
 
@@ -80,6 +81,12 @@
 | [Agentic 系统设计](06-advanced/01-agentic-system-design.md) | 工作流编排、容错、多 Agent 架构 | ⭐⭐⭐⭐ |
 | [微调与模型定制](06-advanced/02-fine-tuning.md) | LoRA/QLoRA、数据准备、评估 | ⭐⭐⭐⭐ |
 | [前沿方向](06-advanced/03-frontier-topics.md) | 推理模型、超长上下文、AGI 探索 | ⭐⭐⭐⭐ |
+
+### 第七部分：面试题
+
+| 章节 | 内容 | 难度 |
+|------|------|------|
+| [AI 应用开发面试题](07-interview/01-interview-questions.md) | 25 道高频面试题，覆盖六大知识模块 | ⭐⭐ |
 
 ## 推荐学习路线
 
